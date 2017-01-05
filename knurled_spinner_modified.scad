@@ -19,12 +19,12 @@ cap_th             = 3;
 /*cubes_instead      = 1;   // make it with cubes. default 0*/
 debug              = 1;   // switch to 1 to print debugging data
 fudge_factor       = 0.2;
-num_bearings       = 6;   // skate bearings. I recommend values between 3 and 7. default 4
-rotation           = 90;  // rotate the bearings. default 0
+num_bearings       = 3;   // skate bearings. I recommend values between 3 and 7. default 4
+rotation           = 30;  // rotate the bearings between 0 and 90 degrees. default 0. try 45 or 90.
 // works great with solid discs.
-// hollow discs need bearing offset
-/*solid_discs        = 1;   // make the rings solid. default 0*/
-texture            = 1;   // enable knurling on external rings
+// knurled discs need bearing offset
+solid_discs        = 0;   // make the rings solid. default 0
+/*texture            = 1;   // enable knurling on external rings*/
 wall_th            = 1.5; // inner knurling invisible at values less than 1
 
 // cap variables
@@ -58,12 +58,14 @@ module housing_knurled_3() {
         translate([0, 0, bearing_h/2])
         difference() {
           // color it green
-          color ([0,1,0]) {
+          color([0,1,0]) {
             if (cubes_instead == 1) {
               cube(size = [bearing_outer_d, bearing_outer_d, bearing_h*1.2], center = true);
               }
-            if (texture == 1) {
-              cylinder(r = bearing_outer_d/2+wall_th*3, h = bearing_h, center = true);
+              if (texture == 1) {
+              translate([0, 0, -bearing_h/2]) {
+                cylinder(r = bearing_outer_d/2+wall_th*3, h = bearing_h, center = true);
+              }
             } else {
               translate([0, 0, -bearing_h/2]) {
                 cylinder(r = bearing_outer_d/2+wall_th*2, h = bearing_h, center = true);
@@ -86,12 +88,14 @@ module housing_knurled_3() {
               echo ("DEBUG placement:", placement);
             }
             // color it blue
-            color ([0,0,1]) {
+            color([0,0,1]) {
               rotate([0, 0, placement])
               translate([bearing_outer_d*1.5-wall_th*1, 0, -bearing_h/2-fudge_factor])
               scale([1, 1.3, 1])
               if (texture == 1) {
-                knurl(k_cyl_od = bearing_outer_d*1.7, k_cyl_hg = bearing_h+(fudge_factor*2));
+                translate([0, 0, -bearing_h/2]) {
+                  knurl(k_cyl_od = bearing_outer_d*1.7, k_cyl_hg = bearing_h+(fudge_factor*2));
+                }
               }
             }
           }
@@ -107,13 +111,23 @@ module housing_knurled_3() {
                 // interval position needs to be offset by 1/2 thickness of bearing_h
                 // so as to align ring on the interval position rather than next to it
                 /*translate([bearing_outer_d+wall_th*2, 0, bearing_h/2])*/
-                if (rotation > 1 ) {
+                if (rotation == 90 ) {
+                  echo ("90 degrees");
+                  echo("kx,ky,kz",bearing_outer_d+wall_th*2, bearing_h/2, 0);
                   translate([bearing_outer_d+wall_th*2, bearing_h/2, 0])
                   rotate(a=rotation, v=[1,0,0]) {
                     knurl(k_cyl_od = bearing_outer_d+wall_th*4, k_cyl_hg = bearing_h);
                   }
+                } else if ((rotation > 1 ) && (rotation < 90)) {
+                  /*translate([bearing_outer_d+wall_th*2, bearing_h/2, 0])*/
+                  echo("kx,ky,kz",bearing_outer_d+wall_th*2, bearing_h/2, -bearing_h/2);
+                  translate([bearing_outer_d+wall_th*2, bearing_h/2, -bearing_h/2])
+                  rotate(a=rotation, v=[1,0,0]) {
+                    knurl(k_cyl_od = bearing_outer_d+wall_th*4, k_cyl_hg = bearing_h);
+                  }
                 } else {
-                  translate([bearing_outer_d+wall_th*2, 0, 0])
+                  /*translate([bearing_outer_d+wall_th*2, 0, 0])*/
+                  translate([bearing_outer_d+wall_th*2, 0, -bearing_h/2])
                   rotate(a=rotation, v=[1,0,0]) {
                     knurl(k_cyl_od = bearing_outer_d+wall_th*4, k_cyl_hg = bearing_h);
                   }
@@ -130,21 +144,42 @@ module housing_knurled_3() {
 
     // subtract bearing holes
     cylinder(r = bearing_outer_d/2, h = bearing_h*2+(fudge_factor), center = true);
+    center_offset = ((360/rotation)*PI);
+    echo ("center_offset", center_offset);
     if (solid_discs != 1) {
       for (i = [1:(knurling)]) {
+        color([1,.4,0])
         rotate([0, 0, i*360/(knurling)])
         rotate(a=rotation, v=[1,0,0]) {
-          if (rotation > 1) {
-            // need to adjust y translation to compensate for bearing_h for rotations under 90 deg
-            // at 90 degrees it must be zero
-            /*translate([bearing_outer_d+wall_th*2, (90-rotation)*.1-(fudge_factor*(90/rotation)), 0])*/
-            // great at 45 degrees
-            /*translate([bearing_outer_d+wall_th*2, (90-rotation)*.1-(fudge_factor*8), 0])*/
+          if (rotation == 90 ) {
+            // at 90 degrees it must be zero translation for y and z
             translate([bearing_outer_d+wall_th*2, 0, 0])
+            cylinder(r = bearing_outer_d/2, h = bearing_h*2+(fudge_factor), center = true);
+          } else if (rotation == 45 ) {
+            // great at 45 degrees
+            if (debug == 2) {
+              temp_x = bearing_outer_d+wall_th*2;
+              temp_y = -bearing_h/2+(1.75*center_offset);
+              temp_z = 0;
+              echo ("x,y,z", temp_x, temp_y, temp_z);
+            }
+            /*translate([bearing_outer_d+wall_th*2, -bearing_h/2+(1.75*center_offset), 0])*/
+            translate([bearing_outer_d+wall_th*2, bearing_h/(8*center_offset), -bearing_h/2])
+            cylinder(r = bearing_outer_d/2, h = bearing_h*2+(fudge_factor), center = true);
+          } else if ((rotation > 1) && (rotation < 45)) {
+            // need to adjust y translation to compensate for bearing_h for rotations under 90 deg
+            /*translate([bearing_outer_d+wall_th*2, (90-rotation)*.1-(fudge_factor*(90/rotation)), 0])*/
+            /*translate([bearing_outer_d+wall_th*2, (90-rotation)*.1-(fudge_factor*8), 0])*/
+            /*translate([bearing_outer_d+wall_th*2, 0, 0])*/
+            /*translate([bearing_outer_d+wall_th*2, -bearing_h/2+center_offset, 0])*/
+            /*translate([bearing_outer_d+wall_th*2, bearing_h/2, -bearing_h/2])*/
+            /*translate([bearing_outer_d+wall_th*2, -bearing_h/2+(fudge_factor), 0])*/
             /*translate([bearing_outer_d+wall_th*2, bearing_h/2-(fudge_factor*4), 0])*/
+            /*translate([bearing_outer_d+wall_th*2, bearing_h/(8*center_offset), 0])*/
+            translate([bearing_outer_d+wall_th*2, 0, -bearing_h/2])
             cylinder(r = bearing_outer_d/2, h = bearing_h*2+(fudge_factor), center = true);
           } else {
-            translate([bearing_outer_d+wall_th*2, 0, 0])
+            translate([bearing_outer_d+wall_th*2, 0, -bearing_h/2])
             cylinder(r = bearing_outer_d/2, h = bearing_h*2+(fudge_factor), center = true);
           }
         }
@@ -168,8 +203,8 @@ module peg_cap() {
     sphere(r = bearing_outer_d, center = true);
   }
   if (debug == 1) {
-    echo ("DEBUG r1:", bearing_inner_d/2-extra_d+(extra_d*2));
-    echo ("DEBUG r2:", bearing_inner_d/2+(extra_d*2));
+    echo("DEBUG r1:", bearing_inner_d/2-extra_d+(extra_d*2));
+    echo("DEBUG r2:", bearing_inner_d/2+(extra_d*2));
   }
 }
 
@@ -222,13 +257,14 @@ module peg_cap() {
  */
 
 module knurl(
-  k_cyl_hg  = 12,
-	k_cyl_od  = 25,
-	knurl_wd  = 4,
-	knurl_hg  = 4,
-	knurl_dp  = .5,
-	e_smooth  = 2,
-	s_smooth  = 0) {
+  k_cyl_hg  = 12,   /* cylinder height */
+	k_cyl_od  = 25,   /* outer diameter */
+	knurl_wd  = 4,    /* knurl width */
+	knurl_hg  = 4,    /* knurl height */
+	knurl_dp  = .5,   /* knurl depth */
+	e_smooth  = 2,    /* ends smooth height */
+  s_smooth  = 0     /* surface smoothing */
+) {
   knurled_cyl(k_cyl_hg, k_cyl_od, knurl_wd, knurl_hg, knurl_dp, e_smooth, s_smooth);
 }
 
@@ -246,18 +282,21 @@ module knurled_cyl(chg, cod, cwd, csh, cdp, fsh, smt) {
   if ( fsh < 0 ) {
     union() {
       shape(fsh, cird+cdp*smt/100, cord, cfn*4, chg);
+      /*echo ("translate:",(-(crn*csh-chg)/2));*/
       translate([0, 0, -(crn*csh-chg)/2])
         knurled_finish(cord, cird, clf, csh, cfn, crn);
     }
   } else if ( fsh == 0 ) {
     intersection() {
       cylinder(h = chg, r = cord-cdp*smt/100, $fn = 2*cfn, center = false);
+      /*echo ("translate:",(-(crn*csh-chg)/2));*/
       translate([0, 0, -(crn*csh-chg)/2])
         knurled_finish(cord, cird, clf, csh, cfn, crn);
     }
   } else {
     intersection() {
       shape(fsh, cird, cord-cdp*smt/100, cfn*4, chg);
+      /*echo ("translate:",(-(crn*csh-chg)/2));*/
       translate([0, 0, -(crn*csh-chg)/2])
         knurled_finish(cord, cird, clf, csh, cfn, crn);
     }
@@ -281,18 +320,19 @@ module shape(hsh, ird, ord, fn4, hg) {
       			paths  = [[0, 1, 2, 3, 4, 5]]);
   } else {
   	rotate_extrude(convexity = 10, $fn = fn4)
-  	polygon(points = [[x0, y0], [x1, y0], [x1, y1], [x2, y2],
+  	polygon(
+            points = [[x0, y0], [x1, y0], [x1, y1], [x2, y2],
                       [x2, y3], [x1, y4], [x1, y5], [x0, y5]],
             paths  = [[0, 1, 2, 3, 4, 5, 6, 7]]);
   }
 }
 
-module knurled_finish(ord, ird, lf, sh, fn, rn) {
+module knurled_finish (ord, ird, lf, sh, fn, rn) {
   for (j = [0:rn-1]) {
     h0 = sh*j;
     h1 = sh*(j+1/2);
     h2 = sh*(j+1);
-      for(i = [0:fn-1]) {
+      for (i = [0:fn-1]) {
         lf0 = lf*i;
         lf1 = lf*(i+1/2);
         lf2 = lf*(i+1);
