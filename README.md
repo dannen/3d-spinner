@@ -3,8 +3,16 @@ openscad spinner code
 
 http://www.thingiverse.com/thing:1969836
 
-Updated 12/21/16:
+Updated 02/17/17:
 
+current:
+removed the debuging code.
+refactored the code (again).
+added ROTATION to the outer rings.
+reduced the size of the cylinders that make the holes in the outer rings.
+removed a lot of unnecessary code.
+
+older:
 Redid the math to better support spinners of 3 to 7 bearings.
 Added color to better show the different functions.
 Expanded fudge_factor to other loops in the code.
