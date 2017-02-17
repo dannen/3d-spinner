@@ -6,18 +6,18 @@ http://www.thingiverse.com/thing:1969836
 Updated 02/17/17:
 
 current:
-removed the debuging code.
-refactored the code (again).
-added ROTATION to the outer rings.
-reduced the size of the cylinders that make the holes in the outer rings.
-removed a lot of unnecessary code.
+removed the debuging code.<br>
+refactored the code (again).<br>
+added ROTATION to the outer rings.<br>
+reduced the size of the cylinders that make the holes in the outer rings.<br>
+removed a lot of unnecessary code.<br>
 
 older:
-Redid the math to better support spinners of 3 to 7 bearings.
-Added color to better show the different functions.
-Expanded fudge_factor to other loops in the code.
-Added more comments to better explain variables, loops, math, etc.
-Added debug function to print out variables in openscad. 1 = on, 0 = off.
+Redid the math to better support spinners of 3 to 7 bearings.<br>
+Added color to better show the different functions.<br>
+Expanded fudge_factor to other loops in the code.<br>
+Added more comments to better explain variables, loops, math, etc.<br>
+Added debug function to print out variables in openscad. 1 = on, 0 = off.<br>
 
 An edit of the scad code from:
 
