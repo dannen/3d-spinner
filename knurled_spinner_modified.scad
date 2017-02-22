@@ -19,8 +19,8 @@ cap_th             = 3;
 fnord              = 0;
 fudge_factor       = 0.1;
 num_bearings       = 7;   // skate bearings. I recommend values between 3 and 7. default 4
-                          // for 7 bearings, use a rotation of 0.001 to make the rings render.
-rotation           = 10;  // rotate the bearings. default 0. I recommend trying 30, 45, 90.
+                          // issues arise after 8 rings.
+rotation           = 0;   // rotate the bearings. default 0. I recommend trying 30, 45, 90.
 // works great with solid discs.
 solid_discs        = 0;   // make the rings solid. default 0
 texture            = 1;   // enable knurling on external rings
@@ -93,12 +93,10 @@ module housing_knurled_3() {
               rotate([0, 0, i*360/(number_of_outer_rings)])
               if (texture == 1) {
                 // rings with knurling
-                if (rotation != 0) {
-                  translate ([bearing_outer_d+wall_th*2, 0, 0])
-                  rotate(a=rotation, v=[1,0,0]) {
-                    knurl(k_cyl_od = bearing_outer_d+wall_th*4, k_cyl_hg = bearing_h, fnord = -bearing_h/2);
-                  }
-              }
+                translate ([bearing_outer_d+wall_th*2, 0, 0])
+                rotate(a=rotation, v=[1,0,0]) {
+                  knurl(k_cyl_od = bearing_outer_d+wall_th*4, k_cyl_hg = bearing_h, fnord = -bearing_h/2);
+                }
             } else {
               // no knurling rings
               translate ([bearing_outer_d+wall_th*2, 0, 0])
